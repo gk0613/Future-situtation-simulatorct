@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101d35">
+  <meta name="description" content="Model crowd movement, review simulated risk and compare preventive scenarios in public spaces.">
+  <title>Future Situation Simulator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('index') }}" aria-label="Future Situation Simulator home">
+    <span class="brand-mark">F</span>
+    <span class="brand-copy"><strong>Future Situation Simulator</strong><small>PUBLIC SPACE ANALYTICS</small></span>
+  </a>
+  <div class="top-actions">
+    <span class="connection"><i></i> Workspace ready</span>
+    <span class="user-chip"><span class="avatar">{{ username[:1]|upper }}</span>{{ username }}</span>
+    <a class="logout-link" href="{{ url_for('logout') }}">Sign out <span aria-hidden="true">↗</span></a>
+  </div>
+</header>
+
+<div class="app-layout">
+  <aside class="sidebar" aria-label="Main navigation">
+    <p class="side-label">WORKSPACE</p>
+    <a class="side-link active" href="#overview"><span>▦</span> Overview</a>
+    <a class="side-link" href="#setup"><span>⌘</span> Scenario setup</a>
+    <a class="side-link" href="#results"><span>◫</span> Analysis</a>
+    <a class="side-link" href="#actionLab"><span>⇄</span> Action lab</a>
+    <a class="side-link" href="#historyPanel"><span>◷</span> History</a>
+    <div class="sidebar-note"><span class="note-icon">i</span><strong>Simulation model</strong><p>Results are based on simplified assumptions and are intended for planning demonstrations.</p></div>
+    <div class="side-version">FSS <span>VERSION 7.0</span></div>
+  </aside>
+
+  <main class="main-content">
+    <section class="welcome-row" id="overview">
+      <div><p class="eyebrow">PUBLIC SPACE CROWD INTELLIGENCE</p><h1>Simulation workspace</h1><p class="welcome-text">Explore possible crowd conditions, identify pressure points and compare preventive decisions.</p></div>
+      <div class="welcome-actions"><button class="button button-light" id="historyBtn" type="button">◷ <span>History</span></button><button class="button button-light" id="demoBtn" type="button">Load demo</button><button class="button button-primary" id="runBtn" type="button">Run simulation <span aria-hidden="true">→</span></button></div>
+    </section>
+
+    <section class="process-strip" aria-label="Workflow">
+      <div><span class="process-number">01</span><span><b>Configure</b><small>Define the public space</small></span></div><span class="process-arrow">→</span>
+      <div><span class="process-number">02</span><span><b>Simulate</b><small>Model crowd movement</small></span></div><span class="process-arrow">→</span>
+      <div><span class="process-number">03</span><span><b>Analyze</b><small>Review density and risk</small></span></div><span class="process-arrow">→</span>
+      <div><span class="process-number">04</span><span><b>Improve</b><small>Compare interventions</small></span></div>
+    </section>
+
+    <section class="setup-grid" id="setup">
+      <article class="panel setup-panel">
+        <div class="panel-heading"><div><p class="eyebrow">SCENARIO INPUT</p><h2>Scenario setup</h2><p class="panel-description">Set the operating conditions for your simulation.</p></div><span class="step-tag">STEP 01</span></div>
+        <div class="form-grid">
+          <label class="field field-wide">Public space name<input id="spaceName" value="College Event Ground" maxlength="80" placeholder="e.g. College Event Ground"></label>
+          <label class="field">Simulation duration <span class="field-unit">Minutes</span><input id="simTime" type="number" min="5" max="180" value="30"></label>
+          <label class="field">Arrival rate <span class="field-unit">People / min</span><input id="arrivalRate" type="number" min="0" max="500" value="12"></label>
+          <label class="field">Exit rate <span class="field-unit">People / min</span><input id="exitRate" type="number" min="0" max="500" value="6"></label>
+        </div>
+        <label class="emergency-toggle"><input id="emergency" type="checkbox"><span class="toggle-ui"></span><span><b>Enable emergency conditions</b><small>Apply the emergency assumptions during the simulation.</small></span></label>
+      </article>
+
+      <article class="panel model-panel">
+        <div class="panel-heading"><div><p class="eyebrow">INTERPRETATION GUIDE</p><h2>Risk classification</h2><p class="panel-description">Zone density is compared with its configured capacity.</p></div><span class="step-tag">MODEL</span></div>
+        <div class="risk-legend">
+          <div class="legend-item"><i class="risk-dot low"></i><span><b>Low</b><small>Below 60%</small></span></div>
+          <div class="legend-item"><i class="risk-dot medium"></i><span><b>Medium</b><small>60% to below 80%</small></span></div>
+          <div class="legend-item"><i class="risk-dot high"></i><span><b>High</b><small>80% to 100%</small></span></div>
+          <div class="legend-item"><i class="risk-dot critical"></i><span><b>Critical</b><small>Above 100%</small></span></div>
+        </div>
+        <div class="formula-note"><span>ƒx</span><p><b>Density formula</b><small>People in zone ÷ zone capacity × 100</small></p></div>
+      </article>
+    </section>
+
+    <section class="panel zones-panel">
+      <div class="panel-heading"><div><p class="eyebrow">SPACE DESIGN</p><h2>Public space zones</h2><p class="panel-description">Add areas such as entrances, halls, waiting areas and exits.</p></div><button class="button button-outline" id="addZone" type="button">＋ Add zone</button></div>
+      <div id="zones" class="zones-grid"></div>
+      <p class="helper-line">You can configure up to 12 zones. Starting crowd cannot exceed the zone capacity.</p>
+    </section>
+
+    <section id="results" class="results-section hidden">
+      <div class="section-heading"><div><p class="eyebrow">SIMULATION OUTPUT</p><h2 id="resultTitle">Simulation results</h2><p id="savedMessage" class="panel-description" aria-live="polite"></p></div><button class="button button-outline" id="downloadBtn" type="button">↓ Download CSV report</button></div>
+      <div class="stats-grid" id="stats"></div>
+      <div class="analysis-grid">
+        <article class="panel chart-panel"><div class="panel-heading"><div><p class="eyebrow">ANIMATED VIEW</p><h2>Live crowd map</h2></div><span class="live-clock" id="clock">t = 0 min</span></div><canvas id="crowdCanvas" width="900" height="380" aria-label="Animated crowd density by zone"></canvas><p class="chart-caption">Each zone fills according to its simulated crowd density.</p></article>
+        <article class="panel chart-panel"><div class="panel-heading"><div><p class="eyebrow">TREND ANALYSIS</p><h2>Risk & density timeline</h2></div><span class="step-tag">SIMULATION</span></div><canvas id="timelineCanvas" width="900" height="380" aria-label="Overall crowd density timeline"></canvas><p class="chart-caption">Overall density throughout the selected simulation duration.</p></article>
+      </div>
+      <div class="analysis-grid">
+        <article class="panel"><div class="panel-heading"><div><p class="eyebrow">ZONE-BY-ZONE</p><h2>Risk analysis</h2></div><span class="step-tag">FINAL STATE</span></div><div id="riskTable" class="table-wrap"></div></article>
+        <article class="panel"><div class="panel-heading"><div><p class="eyebrow">CAPACITY PRESSURE</p><h2>Bottleneck ranking</h2></div><span class="step-tag">PEAK ≥ 80%</span></div><div id="bottlenecks" class="bottleneck-list"></div></article>
+      </div>
+      <article class="panel emergency-panel" id="emergencyPanel"></article>
+    </section>
+
+    <section class="panel action-panel" id="actionLab">
+      <div class="panel-heading"><div><p class="eyebrow">WHAT-IF ANALYSIS</p><h2>Preventive Action Lab</h2><p class="panel-description">Test an alternative set of conditions against your baseline scenario.</p></div><span class="step-tag">STEP 02</span></div>
+      <div class="form-grid action-fields">
+        <label class="field">Scenario B arrival rate <span class="field-unit">People / min</span><input id="testArrival" type="number" min="0" value="7"></label>
+        <label class="field">Scenario B exit rate <span class="field-unit">People / min</span><input id="testExit" type="number" min="0" value="12"></label>
+        <label class="field">Scenario B duration <span class="field-unit">Minutes</span><input id="testTime" type="number" min="5" value="30"></label>
+        <label class="field checkbox-field"><input id="testEmergency" type="checkbox"><span>Enable emergency conditions in B</span></label>
+      </div>
+      <button class="button button-primary" id="compareBtn" type="button">Compare scenario A vs B <span aria-hidden="true">→</span></button>
+      <div id="comparison" class="comparison hidden" aria-live="polite"></div>
+    </section>
+
+    <section id="historyPanel" class="panel history-panel hidden">
+      <div class="panel-heading"><div><p class="eyebrow">SAVED RECORDS</p><h2>Simulation history</h2><p class="panel-description">Your saved runs are associated with your account.</p></div><button class="button button-outline" id="refreshHistoryBtn" type="button">↻ Refresh</button></div>
+      <div id="historyTable"></div>
+    </section>
+
+    <footer class="footer"><span><b>Future Situation Simulator</b> <small>V7.0 · Public Space Analytics</small></span><span>Decision-support prototype · Not for real-time emergency operations</span></footer>
+  </main>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>
